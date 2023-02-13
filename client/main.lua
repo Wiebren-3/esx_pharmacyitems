@@ -1,0 +1,81 @@
+--ESX_PAINKILLER--
+RegisterNetEvent('esx:useItem')
+AddEventHandler('esx:useItem', function(itemName)
+TriggerClientEvent("esx_animations:playEmote", source, "drink")
+TriggerClientEvent("esx_animations:stopEmote", nil")
+	TriggerClientEvent("esx:showNotification", source, "Je nam een pijnstiller, en voelt je langzamerhand steeds beter.")
+        local xPlayer = ESX.GetPlayerFromId(source)
+       		local playerPed = xPlayer.playerPed
+		xPlayer.removeInventoryItem('painkiller', 1)	
+				Wait(100) 
+				TriggeEvent ('esx_status:add','health', 10)
+				Wait(100) 
+				TriggeEvent ('esx_status:add','health', 15)
+				Wait(100) 
+				TriggeEvent ('esx_status:add','health', 20)
+				Wait(100) 
+				TriggeEvent ('esx_status:add','health', 30)
+		TriggerClientEvent("esx:showNotification", source, "Je bent compleet herstelt!")
+		TriggerEvent('esx_status:add', 'health', 100)
+	end)
+end
+
+-- ESX_TOURNIQUET --
+RegisterNetEvent('esx:useItem')
+AddEventHandler('esx:useItem', function(itemName)
+TriggerClientEvent("esx_animations:playEmote", source, "mechanic3")
+    if itemName == 'tourniquet' then
+        local xPlayer = ESX.GetPlayerFromId(source)
+        local playerPed = xPlayer.playerPed
+        TriggerEvent('esx_status:add', 'health', 100)
+        TriggerClientEvent("esx:showNotification", source, "Je bracht een tourniquet aan om je wond, en er ontloopt nu geen grote hoeveelheid bloed.")
+        xPlayer.removeInventoryItem('tourniquet', 1)
+    end)
+end
+
+-- ESX_VITAMINDRINK --
+RegisterNetEvent('esx:useItem')
+AddEventHandler('esx:useItem', function(itemName)
+TriggerClientEvent("esx_animations:playEmote", source, "drink")
+    if itemName == 'vitamindrink' then
+        local xPlayer = ESX.GetPlayerFromId(source)
+        local playerPed = xPlayer.playerPed
+        TriggerEvent('esx_status:add', 'health', 3 )
+        TriggerClientEvent("esx:showNotification", source, "Je dronk een vitaminedrankje, je zal nu iets helderder kunnen denken/zien.")
+        xPlayer.removeInventoryItem('vitamindrink', 1)
+    end)
+end
+
+--ESX_BANDAGE--
+local usingBandage = false
+
+RegisterNetEvent('esx_pharmasistjob:items:bandage')
+AddEventHandler('esx_pharmasistjob:items:bandage', function(source)
+	local playerPed = GetPlayerPed(-1)
+	local health = GetEntityHealth(playerPed)
+	local maxHealth = GetEntityMaxHealth(playerPed)
+	local newHealth = math.floor(health + Config.HealthKits.BandageHP)
+
+	if IsPedSittingInAnyVehicle(playerPed) then
+		ESX.ShowNotification(_U('error_veh'))
+	else
+		if IsPedOnFoot(playerPed) and not usingBandage then
+			usingBandage = true
+			local lib, anim = 'anim@heists@narcotics@funding@gang_idle', 'gang_chatting_idle01'
+			ESX.Streaming.RequestAnimDict(lib, function()
+				TaskPlayAnim(playerPed, lib, anim, 8.0, -8.0, -1, 0, 0, false, false, false)
+
+				Wait(500)
+				while IsEntityPlayingAnim(playerPed, lib, anim, 3) do
+					Wait(0)
+					DisableAllControlActions(0)
+				end
+
+				SetEntityHealth(playerPed, newHealth)
+				usingBandage = false
+			end)
+		else
+			ESX.ShowNotification(_U('error_no_foot'))
+		end
+	end
+end)
